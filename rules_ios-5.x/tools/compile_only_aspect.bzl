@@ -16,7 +16,7 @@ def _compile_only_aspect_impl(target, ctx):
     objc_rule_kinds = ["objc_library"]
 
     for action in target.actions:
-        if action.mnemonic == "ObjcCompile" or action.mnemonic == "CppCompile":
+        if "tests/ios/app/App/main.m" in str(action) and (action.mnemonic == "ObjcCompile" or action.mnemonic == "CppCompile"):
             print(str(action) + str(action.inputs.to_list()))  # this output don't contain compiler need header
 
     # Consider in Swift compilation how to only generate the intefaces
