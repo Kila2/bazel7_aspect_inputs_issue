@@ -1,0 +1,71 @@
+load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
+
+package(default_visibility = ["//visibility:private"])
+
+# Targets to document.
+# Must have a corresponding `bzl_library` target in `//rules:BUILD.bazel`.
+_DOC_SRCS = [
+    "app_clip",
+    "app",
+    "extension",
+    "features",
+    "framework",
+    "hmap",
+    "import_middleman",
+    "library",
+    "plists",
+    "force_load_direct_deps",
+    "precompiled_apple_resource_bundle",
+    "providers",
+    "substitute_build_settings",
+    "test",
+    "transition_support",
+    "vfs_overlay.doc",
+    "xcconfig.doc",
+]
+
+# Create stardoc targets for each documentation target defined
+
+[
+    stardoc(
+        name = file + "_doc",
+        out = file + ".gen.md",
+        input = "//rules:%s.bzl" % file,
+        tags = [
+            "no-cache",
+            "no-sandbox",  # https://github.com/bazelbuild/stardoc/issues/112
+        ],
+        deps = ["//rules:" + file],
+    )
+    for file in _DOC_SRCS
+]
+
+filegroup(
+    name = "_all_docs",
+    srcs = ["%s.gen.md" % name for name in _DOC_SRCS],
+)
+
+genrule(
+    name = "docs",
+    srcs = [
+        ":_all_docs",
+    ],
+    outs = [
+        "generate_docs.sh",
+    ],
+    cmd = """
+echo "#!/bin/bash" > $(OUTS)
+echo "set -eu" > $(OUTS)
+echo 'function copy() {
+    src_name=$$(basename "$$1")
+    dest_name=$${src_name%%.*}_doc.md # replace generated extension with '_doc.md'
+    dest="$${BUILD_WORKSPACE_DIRECTORY}/docs/$${dest_name}"
+    cp "$$1" "$$dest"
+    chmod +w "$$dest"
+}' >> $(OUTS)
+for s in $(SRCS); do
+    echo "copy '$$s'" >> $(OUTS)
+done
+    """,
+    executable = 1,
+)

@@ -1,0 +1,168 @@
+# Pull buildifer.mac as an http_file, then depend on the file group to make an
+# executable
+load("@build_bazel_rules_swift//swift/internal:feature_names.bzl", "SWIFT_FEATURE_USE_GLOBAL_INDEX_STORE")
+load("//rules:features.bzl", "feature_names")
+load("@bazel_skylib//lib:selects.bzl", "selects")
+
+alias(
+    name = "buildifier",
+    actual = "//tools:buildifier",
+)
+
+config_setting(
+    name = "use_global_index_store",
+    values = {
+        "features": SWIFT_FEATURE_USE_GLOBAL_INDEX_STORE,
+    },
+)
+
+config_setting(
+    name = "virtualize_frameworks",
+    values = {
+        "features": feature_names.virtualize_frameworks,
+    },
+)
+
+config_setting(
+    name = "compile_with_xcode",
+    values = {
+        "features": feature_names.compile_with_xcode,
+    },
+)
+
+config_setting(
+    name = "swift_disable_import_underlying_module",
+    values = {
+        "features": feature_names.swift_disable_import_underlying_module,
+    },
+)
+
+selects.config_setting_group(
+    name = "arm64_simulator_use_device_deps",
+    match_any = [
+        ":arm64_simulator_use_device_deps_default",
+        ":arm64_simulator_use_device_deps_intel",
+        ":arm64_simulator_use_device_deps_sim_arm64",
+    ],
+)
+
+# The 2 below settings are implementation details
+config_setting(
+    name = "internal_feature_arm64_simulator_use_device_deps",
+    values = {
+        "features": feature_names.arm64_simulator_use_device_deps,
+    },
+)
+
+config_setting(
+    name = "internal_feature_override_simulator_cpu_arm64",
+    values = {
+        "features": "apple._disabled_arm64_configuration_for_exclusiviity",
+    },
+)
+
+config_setting(
+    name = "cpu_default",
+    values = {
+        "cpu": "",
+    },
+)
+
+config_setting(
+    name = "cpu_ios_x86_64",
+    values = {
+        "cpu": "ios_x86_64",
+    },
+)
+
+config_setting(
+    name = "cpu_ios_sim_arm64",
+    values = {
+        "cpu": "ios_sim_arm64",
+    },
+)
+
+# Default this on for simulators when platform is done
+selects.config_setting_group(
+    name = "arm64_simulator_use_device_deps_default",
+    match_all = [
+        ":cpu_default",
+        ":internal_feature_arm64_simulator_use_device_deps",
+        ":internal_feature_override_simulator_cpu_arm64",
+    ],
+)
+
+selects.config_setting_group(
+    name = "arm64_simulator_use_device_deps_intel",
+    match_all = [
+        ":cpu_ios_x86_64",
+        ":internal_feature_arm64_simulator_use_device_deps",
+        ":internal_feature_override_simulator_cpu_arm64",
+    ],
+)
+
+# Implement this feature per CPU
+selects.config_setting_group(
+    name = "arm64_simulator_use_device_deps_sim_arm64",
+    match_all = [
+        ":cpu_ios_sim_arm64",
+        ":internal_feature_arm64_simulator_use_device_deps",
+    ],
+)
+
+selects.config_setting_group(
+    name = "internal_override_simulator_cpu_arm64_default",
+    match_all = [
+        ":cpu_default",
+        ":internal_feature_override_simulator_cpu_arm64",
+    ],
+)
+
+selects.config_setting_group(
+    name = "internal_override_simulator_cpu_arm64_default_intel",
+    match_all = [
+        ":cpu_ios_x86_64",
+        ":internal_feature_override_simulator_cpu_arm64",
+    ],
+)
+
+selects.config_setting_group(
+    name = "internal_override_simulator_cpu_arm64",
+    match_any = [
+        ":internal_override_simulator_cpu_arm64_default",
+        ":internal_override_simulator_cpu_arm64_default_intel",
+    ],
+)
+
+xcode_version(
+    name = "version14_2_0_14C18",
+    aliases = [
+        "14.2.0.14C18",
+        "14.2.0",
+        "14C18",
+        "14.2",
+        "14",
+    ],
+    default_ios_sdk_version = "16.2",
+    default_macos_sdk_version = "13.1",
+    default_tvos_sdk_version = "16.1",
+    default_watchos_sdk_version = "9.1",
+    version = "14.2.0.14C18",
+)
+
+xcode_config(
+    name = "host_xcodes",
+    default = ":version14_2_0_14C18",
+    versions = [
+        ":version14_2_0_14C18",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+available_xcodes(
+    name = "host_available_xcodes",
+    default = ":version14_2_0_14C18",
+    versions = [
+        ":version14_2_0_14C18",
+    ],
+)

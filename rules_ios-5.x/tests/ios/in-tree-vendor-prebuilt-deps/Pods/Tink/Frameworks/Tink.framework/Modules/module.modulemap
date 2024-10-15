@@ -1,0 +1,8 @@
+framework module Tink {
+  umbrella header "Tink.h"
+  export *
+  module * { export * }
+  link "m"
+  link "pthread"
+  link framework "Security"
+}

@@ -1,0 +1,10 @@
+load("//rules/test_host_app:test_host_app.bzl", "generate_test_host_apps")
+
+exports_files([
+    "Info.plist",
+    "ios.entitlements",
+    "LaunchScreen.storyboard",
+    "main.m",
+])
+
+generate_test_host_apps()
