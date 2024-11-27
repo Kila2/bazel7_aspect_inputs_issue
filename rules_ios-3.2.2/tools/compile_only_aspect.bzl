@@ -18,6 +18,12 @@ def _compile_only_aspect_impl(target, ctx):
     for action in target.actions:
         if "tests/ios/app/App/main.m" in str(action) and (action.mnemonic == "ObjcCompile" or action.mnemonic == "CppCompile"):
             print(str(action) + str(action.inputs.to_list()))  # this output don't contain compiler need header
+            found_objc_arc = False
+            for input in action.inputs.to_list():
+                if input.path.endswith("objc_arc"):
+                    found_objc_arc = True
+            if not found_objc_arc:
+                fail("not found any input has suffix objc_arc")
 
     # Consider in Swift compilation how to only generate the intefaces
     # through the feature of interface splitting
